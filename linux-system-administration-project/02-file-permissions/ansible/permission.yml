@@ -1,0 +1,141 @@
+---
+- name: automate application directory permissions
+  hosts: node2
+  become: true
+
+  tasks:
+
+
+    - name: create developers
+      ansible.builtin.group:
+        name: developers
+        state: present
+
+    - name: create operations group
+      ansible.builtin.group:
+        name: operations
+        state: present
+
+    - name: create sam user
+      ansible.builtin.user:
+        name: sam
+        groups: operations
+        append: true
+        create_home: true
+        state: present
+
+    - name: create andrew user
+      ansible.builtin.user:
+        name: andrew
+        groups: operations
+        append: true
+        create_home: true
+        state: present
+
+    - name: create colen user
+      ansible.builtin.user:
+        name: colen
+        groups: developers
+        append: true
+        create_home: true
+        state: present
+
+    - name: create druv user
+      ansible.builtin.user:
+        name: druv
+        groups: developers
+        append: true
+        create_home: true
+                state: present
+
+    - name: create application root directory
+      ansible.builtin.file:
+        path: /opt/company-app
+        state: directory
+        owner: root
+        group: developers
+        mode: "0750"
+
+    - name: create application directory
+      ansible.builtin.file:
+        path: /opt/company-app/app
+        state: directory
+        owner: root
+        group: developers
+        mode: "0770"
+
+    - name: create configuration directory
+      ansible.builtin.file:
+        path: /opt/company-app/config
+        state: directory
+        owner: root
+        group: operations
+        mode: "0750"
+
+    - name: create logs directory
+      ansible.builtin.file:
+        path: /opt/company-app/logs
+        state: directory
+        owner: root
+        group: operations
+        mode: "0770"
+
+    - name: create shared directory
+      ansible.builtin.file:
+        path: /opt/company-app/shared
+        state: directory
+        owner: root
+        group: developers
+        mode: "2770"
+
+    - name: create applicaton files
+      ansible.builtin.file:
+        path: /opt/company-app/app/application.conf
+        state: touch
+        owner: root
+        group: developers
+         mode: "0660"
+
+    - name: create sensitive configuration file
+      ansible.builtin.file:
+        path: /opt/company-app/config/production.conf
+        state: touch
+        owner: root
+        group: operations
+        mode: "0640"
+
+    - name: create application log
+      ansible.builtin.file:
+        path: /opt/company-app/logs/application.log
+        state: touch
+        owner: root
+        group: operations
+        mode: "0660"
+
+    # ------------------------------------------------------
+    # ACLs
+    # ------------------------------------------------------
+    - name: Give developer read and execute access to config directory
+      ansible.posix.acl:
+        path: /opt/company-app/config
+        entity: developers
+        etype: group
+        permissions: rx
+        state: present
+
+    - name: Give developers read access to production configuration
+      ansible.posix.acl:
+        path: /opt/company-app/config/production.conf
+        entity: developers
+        etype: group
+        permissions: r
+        state: present
+
+    - name: Give developers read access to logs
+      ansible.posix.acl:
+        path: /opt/company-app/logs
+        entity: developers
+        etype: group
+        permissions: r
+        state: present
+

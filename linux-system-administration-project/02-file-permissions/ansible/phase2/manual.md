@@ -205,5 +205,77 @@ Others received no access.
 
 The execute permission on a directory allows user to enter / traverse the directory and  access files for which they have appropriate permission
 
+# 9. Configuration Directory
+
+Path: /opt/company-app/config
+Owner: root
+Group: operators
+Permissions: 750
+
+Reason: 
+Configuration files may contain sensitive application settings
+
+Operators need operational access to the configuraton directory
+
+Developers should be able to access only configuration information they are explicitly permitted to read.
+
+other users should not have access
+
+# 10. Production Configuration File
+
+Path: /opt/company-app/config/production.conf
+Owner: root
+Group: operators
+Permissions: 640
+
+Reasons:
+The production configuration contains sensitive information
+
+The owner requires read and write access
+
+The operators group requires read access
+
+other userws should receive no access
+
+Therefore: 640
+
+Means: owner -> rw- Group-> r-- Other -> ---
+
+This prevents unauthorized users from modifying the production configuration
+
+# 11. Why ACL Is Required
+
+Traditional  Linux permissions provide access for:
+
+- owner 
+- Group 
+- Others
+
+However in this scenario normal group permission cannot express every required access rule
+
+For example:
+
+Production.conf
+
+belongs to the operators group
+
+operators need read access
+
+Developers also need limited read but developers should not become member ofthe operators group simply to obtain that access
+
+ACLs provide an additional access-control layer
+
+Therefore an ACL was used to give the developers group read access to the production configuration without changing the promary group ownership
 
 
+# 16. Why Permissions Were Chosen
+
+| Resource          | Owner             | Group             | Mode          | Reason                                                       |   
+|-------------------|-------------------|-------------------|---------------|--------------------------------------------------------------|
+| company-app       | root              | developers        | 750           | Restrict access to application root                          |
+| app               | root              | developers        | 770           | Developers need to work with application files               |
+| config            | root              | operators         | 750           | Configuration requires restricted access                     |
+| production.conf   | root              |operators          | 640           | Sensitive configuration should not be writable by developers |
+| logs              | root              | operators         | 770           | Operators need to manage logs                                |
+| application.log   | root              | operators         |660            | Operators need read/write access                             |
+| shared            | root              | developers        | 2770          | Shared developer workspace with group inheritance            |
